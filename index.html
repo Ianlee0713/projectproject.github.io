@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>尋書助手</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .search-results {
+            flex: 1;
+            margin: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .search-results img {
+            max-width: 100px;
+            height: auto;
+        }
+        .book {
+            margin-bottom: 20px;
+        }
+    </style>
+    <script>
+        async function handleSearch(event) {
+            event.preventDefault();
+            const keyword = document.querySelector('input[name="keyword"]').value;
+            const response = await fetch('/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'keyword': keyword
+                })
+            });
+            const data = await response.json();
+
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+
+            const containerDiv = document.createElement('div');
+            containerDiv.className = 'container';
+
+            // 博客來搜尋結果
+            const booksComTwDiv = document.createElement('div');
+            booksComTwDiv.className = 'search-results';
+            booksComTwDiv.innerHTML = `<h2>${data.books_com_tw.title}</h2>`;
+            data.books_com_tw.books.forEach(book => {
+                const bookDiv = document.createElement('div');
+                bookDiv.className = 'book';
+                bookDiv.innerHTML = `
+                    <h3>${book.Title}</h3>
+                    <p>語言: ${book.Language}</p>
+                    <p>作者: ${book.Author}</p>
+                    <p>價格: ${book.Price}</p>
+                    <img src="${book["Image URL"]}" alt="${book.Title}">
+                `;
+                booksComTwDiv.appendChild(bookDiv);
+            });
+            containerDiv.appendChild(booksComTwDiv);
+
+            // 金石堂搜尋結果
+            const kingstoneComTwDiv = document.createElement('div');
+            kingstoneComTwDiv.className = 'search-results';
+            kingstoneComTwDiv.innerHTML = `<h2>${data.kingstone_com_tw.title}</h2>`;
+            data.kingstone_com_tw.books.forEach(book => {
+                const bookDiv = document.createElement('div');
+                bookDiv.className = 'book';
+                bookDiv.innerHTML = `
+                    <h3>${book.Title}</h3>
+                    <p>價格: ${book.Price}元</p>
+                    <img src="${book["Image URL"]}" alt="${book.Title}">
+                `;
+                kingstoneComTwDiv.appendChild(bookDiv);
+            });
+            containerDiv.appendChild(kingstoneComTwDiv);
+
+            resultsDiv.appendChild(containerDiv);
+        }
+    </script>
+</head>
+<body>
+    <h1>尋書助手</h1>
+    <form onsubmit="handleSearch(event)">
+        <input type="text" name="keyword" placeholder="請輸入查詢關鍵字">
+        <button type="submit">搜尋</button>
+    </form>
+    <div id="results"></div>
+</body>
+</html>
+
